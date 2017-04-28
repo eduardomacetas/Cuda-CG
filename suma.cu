@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define N 10
+//#define N 10
+
+#define N (4*4)
+#define THREADS_PER_BLOCK 5	
 
 #define g 10/2
 void random_ints(int* a, int M)
@@ -11,7 +14,13 @@ void random_ints(int* a, int M)
 }
 
 __global__ void add(int *a, int *b, int *c) {
-	c[threadIdx.x]=	a[threadIdx.x]+ b[threadIdx.x];
+	//c[threadIdx.x]=	a[threadIdx.x]+ b[threadIdx.x];
+
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+	c[index] = a[index] + b[index];
+
+
+	
 	
 }
 
@@ -38,7 +47,8 @@ int main(void){
 	cudaMemcpy(d_a, a, size, cudaMemcpyHostToDevice);
 	cudaMemcpy(d_b, b, size, cudaMemcpyHostToDevice);
 
-	add<<<1,N>>>(d_a, d_b, d_c);
+//	add<<<1,N>>>(d_a, d_b, d_c);
+	add<<<N/THREADS_PER_BLOCK,THREADS_PER_BLOCK>>>(d_a, d_b, d_c);
 	
 	
 	cudaMemcpy(c, d_c, size, cudaMemcpyDeviceToHost);
